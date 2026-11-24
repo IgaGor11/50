@@ -1,0 +1,38 @@
+begin;
+do $$
+declare ua uuid:=gen_random_uuid();ub uuid:=gen_random_uuid();uc uuid:=gen_random_uuid();ga uuid;gb uuid;gc uuid;pid uuid;tid uuid;qid uuid;body jsonb;result jsonb;portrait_path text:=gen_random_uuid()||'.webp';
+begin
+ insert into auth.users(id,email) values(ua,'test-a@example.invalid'),(ub,'test-b@example.invalid'),(uc,'test-c@example.invalid');
+ insert into public.teams(name) values('TEST ONLY') returning id into tid;
+ insert into public.pairs default values returning id into pid;
+ insert into public.guests(user_id,name,team_id,pair_id) values(ua,'TEST A',tid,pid) returning id into ga;
+ insert into public.guests(user_id,name,team_id,pair_id) values(ub,'TEST B',tid,pid) returning id into gb;
+ insert into public.guests(user_id,name,team_id) values(uc,'TEST C',tid) returning id into gc;
+ insert into public.media(kind,path,caption,bytes,pair_id) values('portrait',portrait_path,'test',10,pid);
+ insert into public.reviews(guest_id,body,rating) values(ga,'Quote A',5),(gb,'Quote B',5),(gc,'Private C',5);
+ update public.settings set album_published=true;
+ perform set_config('request.jwt.claim.sub',ua::text,true);
+ if not public.can_view_media(portrait_path) then raise exception 'FAIL: consenting pair portrait unavailable';end if;
+ body=public.bootstrap();
+ if jsonb_array_length(body->'state'->'guests')<>2 then raise exception 'FAIL: guest visibility';end if;
+ if jsonb_array_length(body->'state'->'reviews')<>2 then raise exception 'FAIL: quote visibility';end if;
+ begin perform public.app_action('score',jsonb_build_object('id',tid,'score',999));raise exception 'FAIL: guest changed score';exception when insufficient_privilege then null;end;
+ begin perform public.app_action('guest_create','{"name":"intruder"}');raise exception 'FAIL: guest created guest';exception when insufficient_privilege then null;end;
+ if has_table_privilege('authenticated','public.guests','select') or has_table_privilege('authenticated','public.organizers','insert') then raise exception 'FAIL: direct table privileges';end if;
+ if has_function_privilege('anon','public.bootstrap()','execute') then raise exception 'FAIL: anonymous bootstrap';end if;
+ perform set_config('request.jwt.claim.sub',uc::text,true);
+ if public.can_view_media(portrait_path) then raise exception 'FAIL: unrelated portrait accessible';end if;
+ perform set_config('request.jwt.claim.sub',ub::text,true);perform public.app_action('photo_preference','{"value":true}');
+ perform set_config('request.jwt.claim.sub',ua::text,true);
+ if public.can_view_media(portrait_path) then raise exception 'FAIL: pair opt-out not enforced';end if;
+ body=public.bootstrap();if jsonb_array_length(body->'state'->'reviews')<>1 then raise exception 'FAIL: opted-out partner quote leaked';end if;
+ insert into public.questions(prompt,options,correct_index,points,active) values('TEST','["A","B"]',0,10,true) returning id into qid;
+ body=public.bootstrap();if exists(select 1 from jsonb_array_elements(body->'state'->'questions') q where q ? 'correct_index') then raise exception 'FAIL: answer key leaked';end if;
+ result=public.app_action('answer',jsonb_build_object('question_id',qid,'choice',0));
+ begin perform public.app_action('answer',jsonb_build_object('question_id',qid,'choice',0));raise exception 'FAIL: duplicate accepted';exception when unique_violation then null;end;
+ if (select score from public.teams where id=tid)<>10 then raise exception 'FAIL: duplicate scoring';end if;
+ perform public.app_action('review',jsonb_build_object('body','<script>alert(1)</script>','rating',5));
+ if (select r.body from public.reviews r where r.guest_id=gc)<>'Private C' then raise exception 'FAIL: cross-guest mutation';end if;
+end $$;
+select 'PASS: private media, pair consent, quote isolation, admin boundaries, anonymous access, answer secrecy, duplicate scoring, owner-only review' as result;
+rollback;

@@ -1,0 +1,1 @@
+create function public.public_program() returns jsonb language sql stable security definer set search_path='' as $$ select coalesce(jsonb_agg(to_jsonb(p) order by position),'[]'::jsonb) from public.program p $$; revoke all on function public.public_program() from public; grant execute on function public.public_program() to anon,authenticated;

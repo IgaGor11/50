@@ -3,7 +3,7 @@
 Static event website with Supabase Auth, private media, personal albums and organizer console.
 
 ## Hosting
-Publish the contents of dist to GitHub Pages. There are no build dependencies. Configure Pages to deploy main / root if using the prepared github-50 directory. Production configuration contains only the public publishable key; authorization is enforced by database functions and Storage policies.
+This repository serves static files from its root on GitHub Pages. There are no build dependencies. Configure Pages to deploy main / root for this repository. Production configuration contains only the public publishable key; authorization is enforced by database functions and Storage policies.
 
 ## Usage
 - Guest: open a personal invite generated in the organizer guest list. Invite links are single-use. The profile offers an optional Remember me checkbox, off by default. On another device or after logout, ask the organizer for a new invitation.
