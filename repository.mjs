@@ -1,0 +1,56 @@
+import {demoState,validatePair,text} from './domain.mjs';
+const cfg=window.EVENING_CONFIG||{};
+export const live=cfg.mode==='live'&&!new URLSearchParams(location.search).has('demo');
+let token=null,db=null;
+export let identity={role:'guest',guestId:'anna'};
+let state;
+function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open('evening-complete-v3',1);r.onupgradeneeded=()=>r.result.createObjectStore('state');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function transaction(method,value){return new Promise((resolve,reject)=>{const tx=db.transaction('state',method==='get'?'readonly':'readwrite');const store=tx.objectStore('state');const req=method==='get'?store.get('main'):store.put(value,'main');tx.oncomplete=()=>resolve(req.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
+async function request(path,options={}){if(!cfg.supabaseUrl||!cfg.publishableKey)throw Error('Не настроено подключение к Supabase');const response=await fetch(cfg.supabaseUrl+path,{...options,headers:{apikey:cfg.publishableKey,...(token?.access_token?{Authorization:'Bearer '+token.access_token}:{}),'Content-Type':'application/json',...options.headers},signal:AbortSignal.timeout(30000)});if(!response.ok){let err;try{err=await response.json()}catch{}throw Error(err?.message||err?.msg||err?.error_description||'Ошибка сервера: '+response.status)}return response.status===204?null:response.json()}
+async function rpc(name,args={}){return request('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(args)})}
+async function refreshToken(){if(!token)return;if(token.expires_at>Date.now()/1000+90)return;try{token=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:token.refresh_token})});sessionStorage.setItem('evening-auth',JSON.stringify(token))}catch{token=null;sessionStorage.removeItem('evening-auth');throw Error('Сессия завершилась. Войдите снова.')}}
+export async function init(){if(live){try{token=JSON.parse(sessionStorage.getItem('evening-auth'))}catch{}if(token){await refreshToken();return reload()}state={settings:{},guests:[],teams:[],reviews:[],media:[],requests:[],program:[],questions:[],answers:[],votes:[]};identity={role:'anonymous',guestId:null};return state}db=await openDB();state=await transaction('get')||demoState();try{identity=JSON.parse(sessionStorage.getItem('evening-demo-identity'))||identity}catch{}await persist();return state}
+export async function reload(){if(!live)return state;await refreshToken();const result=await rpc('bootstrap');state=result.state;identity=result.identity;return state}
+async function persist(){if(live)return;await transaction('put',state)}
+export function getState(){return state}
+export async function login(email,password){if(!live)throw Error('В демо используйте переключение ролей');token=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});sessionStorage.setItem('evening-auth',JSON.stringify(token));return reload()}
+export async function claimInvite(invite){if(!live)throw Error('Приглашения доступны после подключения Supabase');if(!token){token=await request('/auth/v1/signup',{method:'POST',body:JSON.stringify({})});if(!token.access_token)throw Error('В Supabase нужно включить анонимный вход');sessionStorage.setItem('evening-auth',JSON.stringify(token))}await refreshToken();await rpc('claim_invite',{invite_token:invite});return reload()}
+export async function logout(){if(live&&token){try{await request('/auth/v1/logout',{method:'POST'})}catch{}}token=null;sessionStorage.removeItem('evening-auth');identity={role:'anonymous',guestId:null};return init()}
+export function demoIdentity(role,guestId){if(live)throw Error('Недоступно');identity={role,guestId};sessionStorage.setItem('evening-demo-identity',JSON.stringify(identity))}
+function admin(){if(identity.role!=='admin')throw Error('Нужны права организатора')}
+function me(){const g=state.guests.find(g=>g.id===identity.guestId);if(!g)throw Error('Сначала войдите по приглашению');return g}
+export async function mutate(action,p={}){
+ if(live){await refreshToken();const result=await rpc('app_action',{action_name:action,payload:p});await reload();return result}
+ const snapshot=structuredClone(state);let result;
+ try{
+ if(action==='photo_preference')me().photo_opt_out=!!p.value;
+ else if(action==='review'){const g=me(),body=text(p.body);if(!body)throw Error('Напишите несколько слов');state.reviews=state.reviews.filter(r=>r.guest_id!==g.id);state.reviews.push({guest_id:g.id,body,rating:Math.min(5,Math.max(1,Number(p.rating)||5))})}
+ else if(action==='request'){const g=me();if(!state.requests.some(r=>r.guest_id===g.id&&!r.done&&r.kind===p.kind))state.requests.push({id:crypto.randomUUID(),guest_id:g.id,kind:text(p.kind,80),done:false})}
+ else if(action==='vote'){const g=me();state.votes=state.votes.filter(v=>v.guest_id!==g.id);state.votes.push({guest_id:g.id,choice:text(p.choice,80)})}
+ else if(action==='answer'){const g=me(),q=state.questions.find(q=>q.id===p.question_id&&q.active);if(!q)throw Error('Вопрос закрыт');if(state.answers.some(a=>a.guest_id===g.id&&a.question_id===q.id))throw Error('Ответ уже принят');const correct=Number(p.choice)===q.correct_index;state.answers.push({guest_id:g.id,question_id:q.id,choice:p.choice,correct});if(correct){const team=state.teams.find(t=>t.id===g.team_id);if(team)team.score+=q.points}result={correct}}
+ else{admin();switch(action){
+ case 'settings':state.settings={...state.settings,...p};break;
+ case 'guest_create':{const g={id:crypto.randomUUID(),name:text(p.name,80),team_id:p.team_id||state.teams[0]?.id,pair_id:null,photo_opt_out:false};if(!g.name)throw Error('Введите имя');state.guests.push(g);result={id:g.id};break}
+ case 'guest_update':{const g=state.guests.find(g=>g.id===p.id);if(!g)throw Error('Гость не найден');g.name=text(p.name,80)||g.name;g.team_id=p.team_id||null;break}
+ case 'pair':{const [a,b]=validatePair(state.guests,p.first,p.second);a.pair_id=b.pair_id=crypto.randomUUID();break}
+ case 'unpair':state.guests.filter(g=>g.pair_id===p.id).forEach(g=>g.pair_id=null);state.media=state.media.filter(m=>m.pair_id!==p.id);break;
+ case 'score':{const t=state.teams.find(t=>t.id===p.id);if(!t)throw Error('Команда не найдена');t.score=Math.max(0,Math.min(99999,Math.round(Number(p.score)||0)));break}
+ case 'program':state.program=p.items.map((x,i)=>({...x,time:text(x.time,30),title:text(x.title,100),description:text(x.description,400),position:i}));break;
+ case 'question':{const q={id:p.id||crypto.randomUUID(),prompt:text(p.prompt,250),options:p.options.map(x=>text(x,100)),correct_index:Number(p.correct_index),points:Number(p.points)||10,active:!!p.active};if(!q.prompt||q.options.length<2||q.options.some(x=>!x)||q.correct_index<0||q.correct_index>=q.options.length)throw Error('Проверьте вопрос и варианты');state.questions=state.questions.filter(x=>x.id!==q.id);state.questions.push(q);break}
+ case 'request_done':state.requests.find(r=>r.id===p.id).done=true;break;
+ case 'media_caption':state.media.find(m=>m.id===p.id).caption=text(p.caption,120);break;
+ case 'media_delete':state.media=state.media.filter(m=>m.id!==p.id);break;
+ case 'media_order':{const a=state.media.find(m=>m.id===p.id),b=state.media.find(m=>m.id===p.other);if(!a||!b)throw Error('Фотография не найдена');[a.position,b.position]=[b.position,a.position];break}
+ case 'invite_rotate':result={token:'demo-'+p.id};break;
+ default:throw Error('Неизвестное действие');}state.audit.unshift({at:new Date().toISOString(),action});state.audit=state.audit.slice(0,100)}
+ await persist();return result;
+ }catch(err){state=snapshot;throw err}
+}
+export async function preparePhoto(file){if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Поддерживаются JPG, PNG и WebP');if(file.size>25*1024*1024)throw Error('Фото больше 25 МБ');const img=await createImageBitmap(file);if(img.width*img.height>60000000){img.close();throw Error('Слишком большое разрешение снимка')}const scale=Math.min(1,2200/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));c.getContext('2d').drawImage(img,0,0,c.width,c.height);img.close();return new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(Error('Не удалось обработать снимок')),'image/webp',.86))}
+export async function upload(file,meta){admin();const blob=await preparePhoto(file),id=crypto.randomUUID(),path=id+'.webp',position=Date.now();if(live){await refreshToken();await request('/storage/v1/object/event-photos/'+path,{method:'POST',headers:{'Content-Type':blob.type},body:blob});try{await rpc('app_action',{action_name:'media_add',payload:{id,path,bytes:blob.size,position,...meta}})}catch(err){try{await request('/storage/v1/object/event-photos',{method:'DELETE',body:JSON.stringify({prefixes:[path]})})}catch{}throw err}await reload()}else{const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob)});if(meta.kind==='portrait'||meta.kind==='cover')state.media=state.media.filter(m=>!(m.kind===meta.kind&&m.guest_id===(meta.guest_id||null)&&m.pair_id===(meta.pair_id||null)));const item={id,position,bytes:blob.size,data,guest_id:null,pair_id:null,...meta};state.media.push(item);try{await persist()}catch(err){state.media=state.media.filter(m=>m.id!==id);throw err}}}
+const urlCache=new Map();
+export async function mediaURL(photo){if(!photo)return '';if(photo.data)return photo.data;const cached=urlCache.get(photo.path);if(cached&&cached.expires>Date.now())return cached.url;await refreshToken();const r=await request('/storage/v1/object/sign/event-photos/'+photo.path,{method:'POST',body:JSON.stringify({expiresIn:120})});const url=cfg.supabaseUrl+'/storage/v1'+r.signedURL;urlCache.set(photo.path,{url,expires:Date.now()+90000});return url}
+export function clearMediaCache(){urlCache.clear()}
+export async function removeMedia(photo){admin();if(live){await refreshToken();await request('/storage/v1/object/event-photos',{method:'DELETE',body:JSON.stringify({prefixes:[photo.path]})})}return mutate('media_delete',{id:photo.id})}
+
+export async function privateRunbook(command,version,step){await refreshToken();return command?rpc("runbook_control",{command,expected_version:version,step_id:step??null}):rpc("runbook_read")}
