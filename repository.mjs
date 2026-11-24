@@ -16,7 +16,7 @@ export async function init(){if(live){try{remember=!!localStorage.getItem('eveni
 export async function reload(){if(!live)return state;await refreshToken();const result=await rpc('bootstrap');state=result.state;identity=result.identity;return state}
 async function persist(){if(live)return;await transaction('put',state)}
 export function getState(){return state}
-export async function login(email,password){if(!live)throw Error('В демо используйте переключение ролей');token=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});saveToken();return reload()}
+export async function login(email,password){if(!live)throw Error('В демо используйте переключение ролей');token=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});remember=false;localStorage.removeItem('evening-auth');saveToken();return reload()}
 export async function claimInvite(invite){if(!live)throw Error('Приглашения доступны после подключения Supabase');if(!token){token=await request('/auth/v1/signup',{method:'POST',body:JSON.stringify({})});if(!token.access_token)throw Error('В Supabase нужно включить анонимный вход');saveToken()}await refreshToken();await rpc('claim_invite',{invite_token:invite});return reload()}
 export async function logout(){if(live&&token){try{await request('/auth/v1/logout',{method:'POST'})}catch{}}token=null;remember=false;localStorage.removeItem('evening-auth');sessionStorage.removeItem('evening-auth');identity={role:'anonymous',guestId:null};return init()}
 export function demoIdentity(role,guestId){if(live)throw Error('Недоступно');identity={role,guestId};sessionStorage.setItem('evening-demo-identity',JSON.stringify(identity))}
