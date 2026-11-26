@@ -1,22 +1,40 @@
 # 50 поводов сказать спасибо
 
-Static event website with Supabase Auth, private media, personal albums and organizer console.
+Рабочий сайт: https://igagor11.github.io/50/
+Админка: https://igagor11.github.io/50/#admin
+Репетиция: https://igagor11.github.io/50/?demo=1#admin
 
-## Hosting
-This repository serves static files from its root on GitHub Pages. There are no build dependencies. Configure Pages to deploy main / root for this repository. Production configuration contains only the public publishable key; authorization is enforced by database functions and Storage policies.
+## Инструкция организатору
 
-## Usage
-- Guest: open a personal invite generated in the organizer guest list. Invite links are single-use. The profile offers an optional Remember me checkbox, off by default. On another device or after logout, ask the organizer for a new invitation.
-- Organizer: #admin, email/password created in Supabase. Organizer permissions are granted server-side.
-- Demo: ?demo=1#admin. Uses isolated browser IndexedDB, no production access or private scenario.
-- Runbook: admin only, synchronized every 5 seconds. No automatic music/video playback. Step durations were not supplied, so timer shows elapsed time.
-- Public program is edited separately. NEVER paste the private scenario into public program, code or repository.
-- Photos: upload JPG/PNG/WebP, optimized to WebP (2200 px). Upload transparent PNG/WebP for decorative cutouts. Photos remain in a private bucket.
-- Albums: upload birthday cover, individual/pair portrait and common photos, then publish albums. Pair members get identical albums when they share a portrait and both consent. Opt-out removes personal spreads.
-- Keep high-resolution common originals in Google Drive / Yandex Disk and set the shared folder link in Albums. This link is visible to all invited guests; no private portraits there.
+Войдите в админку и откройте вкладку **Инструкция**. Там описаны приглашения, группы, загрузка фото, публикация альбомов, пульт сценария, управление играми и устранение ошибок.
 
-## Validation
-npm test; npm run check. SQL regression tests run inside a transaction and roll back synthetic fixtures. Browser UI and PDF export checked locally. Stress test is 5,000 local album builds against 1,000 synthetic guests / 500 photos; it is not a production concurrent-load test.
+Перед праздником:
+1. Создайте гостей и передайте каждому личную одноразовую ссылку. Новое приглашение отключает предыдущий вход.
+2. Сформируйте фотогруппы и загрузите общий портрет каждой группы. Игровые команды и фотогруппы независимы.
+3. Загрузите архив, обложку и общие фото в соответствующие разделы. Фото обрабатываются до 3200 px; исходники сохраняет фотограф. Декоративные вырезанные портреты через интерфейс не загружаются.
+4. Подготовьте задания команд. Конкретные загадки не были предоставлены, их нужно заполнить перед запуском.
+5. Проверьте личный альбом гостя и включите публикацию альбомов.
 
-## Limits
-Free service storage/traffic limits still apply. Monitor Supabase usage before the event. Downloaded files and already issued signed URLs cannot be recalled. Sessions use sessionStorage by default; only explicit guest opt-in persists their session in localStorage. Use profile logout on a shared device. Private runbook content is intentionally absent from migrations and this repository.
+Закрытый сценарий загружается из базы только после проверки роли организатора. Не вставляйте его в публичное расписание, этот репозиторий или статические файлы.
+
+## Google Drive
+
+Фоновый Apps Script копирует только общие фото через защищённый Edge Function и очередь. Нужны однократное подтверждение разрешений Google и успешный запуск `install`. До этого автокопирование не работает. Скрипт проверяет очередь раз в минуту, до 5 фото за запуск. Проверка статуса доступна в админке. Приватный ключ отсутствует в репозитории.
+
+Это копия оптимизированных фотографий, а не перенос: файлы остаются в Supabase. Удаление снимка на сайте не удаляет копию с Диска. Гостевая ссылка на папку включается отдельно; права доступа к папке сайт не меняет.
+
+## Развёртывание
+
+Статические файлы обслуживаются из корня ветки main через GitHub Pages. Сборка и постоянно работающий компьютер не нужны. config.js содержит только публичный ключ Supabase. Ограничение доступа обеспечивают серверные функции и политики Storage. Никогда не добавляйте service_role, пароли или ключ синхронизации в клиентские файлы.
+
+## Проверки
+
+`npm test` — 13 проверок структуры альбомов, групп, отказов от фото, порядка изображений, подписей и локальной нагрузки (5000 построений, 1000 гостей, 500 фото).
+
+`npm run check` — синтаксис клиентских модулей.
+
+Локально проверены полный оборот страницы, мобильная ширина, PDF и игровой цикл. Серверные проверки выполнялись на временных данных с откатом транзакции. Это не тест одновременной нагрузки на рабочий Supabase и не гарантия отсутствия всех ошибок.
+
+## Эксплуатация
+
+Пульт и гостевой интерактив обновляются примерно раз в 5 секунд. Пульт не воспроизводит музыку и видео автоматически. Google Drive работает независимо от открытого сайта после установки триггера. Квоты бесплатных сервисов по хранению, трафику и времени выполнения сохраняются: проверяйте Usage перед мероприятием. Вход по умолчанию хранится до закрытия вкладки; гостю доступна настройка «Запомнить меня» на своём устройстве. Уже скачанные альбомы не обновляются автоматически.

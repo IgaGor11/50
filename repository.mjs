@@ -1,4 +1,4 @@
-import {demoState,validatePair,validateGroup,text} from './domain.mjs?v=groups-3';
+import {demoState,validatePair,validateGroup,text} from './domain.mjs?v=launch-4';
 const cfg=window.EVENING_CONFIG||{};
 export const live=cfg.mode==='live'&&!new URLSearchParams(location.search).has('demo');
 let token=null,db=null,remember=false;

@@ -1,1 +1,9 @@
-{"name": "50-reasons", "private": true, "type": "module", "scripts": {"test": "node --test tests/*.test.mjs", "check": "node --check main.mjs && node --check repository.mjs && node --check album.mjs && node --check runbook.mjs"}}
+{
+  "name": "50-reasons",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check main.mjs && node --check repository.mjs && node --check album.mjs && node --check runbook.mjs && node --check games.mjs && node --check guide.mjs && node --check domain.mjs && node --check collage.mjs"
+  }
+}
