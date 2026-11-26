@@ -1,0 +1,1 @@
+do $change$ declare definition text; begin select pg_get_functiondef('public.join_event(text,text)'::regprocedure) into definition; execute replace(definition,'Укажите имя и фамилию (от 2 до 80 символов)','Укажите имя (от 2 до 80 символов)'); end $change$;
