@@ -8,7 +8,7 @@ export function collagePages(photos,seed=''){
  for(let i=0;i<count;i++){const size=Math.ceil((sorted.length-offset)/(count-i));pages.push({type:'collage',photos:sorted.slice(offset,offset+size),variant:i,phrases:[albumPhrase(i*2,seed),albumPhrase(i*2+1,seed)]});offset+=size}return pages;
 }
 export function collageFrames(count,variant=0){
- if(count===1)return [{x:35,y:70,w:1530,h:840,r:0}];
+ if(count===1)return [{x:830,y:70,w:740,h:850,r:0}];
  const left=Math.ceil(count/2),right=count-left;
  function side(n,x){if(n===1)return [[x+30,70,740,850]];if(n===2)return [[x+30,70,740,415],[x+30,505,740,415]];return [[x+30,70,740,400],[x+30,490,360,430],[x+410,490,360,430]]}
  return [...side(left,0),...side(right,800)].map(([x,y,w,h])=>({x,y,w,h,r:0}));
