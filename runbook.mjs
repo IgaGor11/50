@@ -1,5 +1,5 @@
-import {live,privateRunbook} from './repository.mjs?v=join-route-17';
-import {escapeHTML as h} from './domain.mjs?v=join-route-17';
+import {live,privateRunbook} from './repository.mjs?v=cinema-18';
+import {escapeHTML as h} from './domain.mjs?v=cinema-18';
 let generation=0;
 export async function mountRunbook(root){
  const gen=++generation;if(!root)return;
