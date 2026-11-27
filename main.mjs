@@ -1,12 +1,12 @@
-import {openAlbumScreen,closeAlbumScreen} from './album-screen.mjs?v=stage-14';
-import {qrCard,printQR} from './qr.mjs?v=stage-14';
-import {organizerGuide} from './guide.mjs?v=stage-14';
-import {collagePages,collageFrames} from './collage.mjs?v=stage-14';
-import {mountRunbook} from './runbook.mjs?v=stage-14';
-import * as repo from './repository.mjs?v=stage-14';
-import {albumFor,escapeHTML as h,safeLink} from './domain.mjs?v=stage-14';
-import {hero} from './home-template.mjs?v=stage-14';
-import {savePhoto,exportPDF,download} from './album.mjs?v=stage-14';
+import {openAlbumScreen,closeAlbumScreen} from './album-screen.mjs?v=entry-fix-15';
+import {qrCard,printQR} from './qr.mjs?v=entry-fix-15';
+import {organizerGuide} from './guide.mjs?v=entry-fix-15';
+import {collagePages,collageFrames} from './collage.mjs?v=entry-fix-15';
+import {mountRunbook} from './runbook.mjs?v=entry-fix-15';
+import * as repo from './repository.mjs?v=entry-fix-15';
+import {albumFor,escapeHTML as h,safeLink} from './domain.mjs?v=entry-fix-15';
+import {hero} from './home-template.mjs?v=entry-fix-15';
+import {savePhoto,exportPDF,download} from './album.mjs?v=entry-fix-15';
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 let sharedEntryKey=location.hash.startsWith('#join=')?location.hash.slice(6):null;
 let state,route='home',adminTab='overview',photoKind='event',portraitTarget='',albumIndex=0,albumGuest=null,archive=false,dialogPhotos=[],dialogIndex=0,toastTimer,renderId=0;
@@ -24,6 +24,7 @@ async function hydrate(root=document){const jobs=[...root.querySelectorAll('img[
 function heading(k,title,description){return `<section class="page-heading section"><p class="eyebrow">${k}</p><h1>${title}</h1><p>${description}</p></section>`}
 function character(phrase){const cuts=state.media.filter(m=>m.kind==='cutout');return `<section class="portrait-aside section"><div class="cutout-place">${cuts.length?img(cuts[route==='play'?1%cuts.length:0],'Евгений без фона'):'<span class="portrait-placeholder">✳</span>'}</div><div><small>Женя подсказывает</small><p>${phrase}</p>${cuts.length?'':'<small>Здесь будет вырезанный портрет Жени</small>'}</div></section>`}
 function quickHome(){const g=me(),team=g&&state.teams.find(t=>t.id===g.team_id);return `<section class="guest-start section">${team?`<div class="my-team"><span>Ваша команда</span><strong>${h(team.name)}</strong><b>${team.score||0} очков</b></div>`:''}<div class="guest-shortcuts"><a href="#program"><span>▰</span><strong>Программа</strong></a><a href="#memories"><span>★</span><strong>Наши фотки</strong></a></div></section>`}
+function renderJoin(){return `<section class="section shared-entry"><p class="eyebrow">50 ПОВОДОВ СКАЗАТЬ СПАСИБО</p><h1>Добро пожаловать!</h1><p>Как вас зовут?</p><form id="shared-entry-form"><label for="entry-name">Ваше имя</label><input id="entry-name" name="name" autocomplete="given-name" placeholder="Например, Анна" minlength="2" maxlength="80" required><button class="button dark" type="submit">Войти на праздник →</button></form><p class="form-note">Без паролей. Этот телефон запомнит вас.</p><p class="form-note">Если вы уже входили на другом телефоне, попросите организатора восстановить ваш профиль.</p></section>`}
 function renderHome(){return hero+quickHome()}
 function renderProgram(){return heading('28 НОЯБРЯ · ВМЕСТЕ','У вечера<br>свой <span class="serif">ритм.</span>','Главное — быть здесь. Всё остальное подождёт.')+`<section class="schedule section">${state.program.map(p=>`<article class="schedule-row"><span class="time">${h(p.time)}</span><div><h3>${h(p.title)}</h3><p>${h(p.description)}</p></div><span class="schedule-icon">✧</span></article>`).join('')||'<p class="empty-state">Программа скоро появится.</p>'}</section>${character('«По расписанию — наслаждаться вечером».')}`}
 function requiresInvite(){return '<section class="section access-card"><span>✧</span><h2>Этот вечер — для своих.</h2><p>Откройте личную ссылку от организатора, чтобы увидеть команду, интерактивы и свой альбом.</p><button class="button outline" id="invite-open">Ввести приглашение</button></section>'}
