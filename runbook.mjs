@@ -1,5 +1,5 @@
-import {live,privateRunbook} from './repository.mjs?v=rock-11';
-import {escapeHTML as h} from './domain.mjs?v=rock-11';
+import {live,privateRunbook} from './repository.mjs?v=clean-12';
+import {escapeHTML as h} from './domain.mjs?v=clean-12';
 let generation=0;
 export async function mountRunbook(root){
  const gen=++generation;if(!root)return;

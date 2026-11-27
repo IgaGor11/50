@@ -1,4 +1,4 @@
-import {collagePages} from './collage.mjs?v=rock-11';
+import {collagePages} from './collage.mjs?v=clean-12';
 export const escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function text(v,max=600){return String(v??'').trim().slice(0,max)}
 export function safeLink(value){try{const u=new URL(value);return u.protocol==='https:'&&['drive.google.com','disk.yandex.ru','disk.yandex.com','yadi.sk'].includes(u.hostname)?u.href:''}catch{return ''}}
