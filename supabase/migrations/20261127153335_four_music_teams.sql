@@ -1,0 +1,3 @@
+update public.teams set name=case name when 'Искра' then 'Агата Кристи' when 'Орбита' then 'Кино' when 'Ритм' then 'ДДТ' else name end where name in ('Искра','Орбита','Ритм');
+insert into public.teams(name) select 'Чиж и Ко' where not exists(select 1 from public.teams where name='Чиж и Ко');
+do $change$ declare definition text; begin select pg_get_functiondef('public.game_action(text,jsonb)'::regprocedure) into definition; execute replace(replace(definition,'n not in(4,5)','n<>4'),'Распределение на 4–5 команд доступно до начала игры','Распределение на 4 команды доступно до начала игры'); end $change$;
