@@ -1,12 +1,12 @@
-import {openAlbumScreen,closeAlbumScreen} from './album-screen.mjs?v=entry-fix-15';
-import {qrCard,printQR} from './qr.mjs?v=entry-fix-15';
-import {organizerGuide} from './guide.mjs?v=entry-fix-15';
-import {collagePages,collageFrames} from './collage.mjs?v=entry-fix-15';
-import {mountRunbook} from './runbook.mjs?v=entry-fix-15';
-import * as repo from './repository.mjs?v=entry-fix-15';
-import {albumFor,escapeHTML as h,safeLink} from './domain.mjs?v=entry-fix-15';
-import {hero} from './home-template.mjs?v=entry-fix-15';
-import {savePhoto,exportPDF,download} from './album.mjs?v=entry-fix-15';
+import {openAlbumScreen,closeAlbumScreen} from './album-screen.mjs?v=join-route-17';
+import {qrCard,printQR} from './qr.mjs?v=join-route-17';
+import {organizerGuide} from './guide.mjs?v=join-route-17';
+import {collagePages,collageFrames} from './collage.mjs?v=join-route-17';
+import {mountRunbook} from './runbook.mjs?v=join-route-17';
+import * as repo from './repository.mjs?v=join-route-17';
+import {albumFor,escapeHTML as h,safeLink} from './domain.mjs?v=join-route-17';
+import {hero} from './home-template.mjs?v=join-route-17';
+import {savePhoto,exportPDF,download} from './album.mjs?v=join-route-17';
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 let sharedEntryKey=location.hash.startsWith('#join=')?location.hash.slice(6):null;
 let state,route='home',adminTab='overview',photoKind='event',portraitTarget='',albumIndex=0,albumGuest=null,archive=false,dialogPhotos=[],dialogIndex=0,toastTimer,renderId=0;
@@ -85,7 +85,7 @@ $('#add-program')?.addEventListener('click',()=>{if($$('.program-editor').length
 $('#question-form')?.addEventListener('submit',e=>{e.preventDefault();change('question',{prompt:$('#question-prompt').value,options:$('#question-options').value.split('\n').map(x=>x.trim()).filter(Boolean),correct_index:Number($('#correct-index').value)-1,points:Number($('#question-points').value),active:false},e.submitter)});bind('[data-question-toggle]','click',e=>{const q=state.questions.find(q=>q.id===e.currentTarget.dataset.questionToggle);change('question',{...q,active:!q.active},e.currentTarget)});bindBook();}
 function bindDeleteProgram(){$$('.delete-program').forEach(b=>b.onclick=()=>b.closest('.program-editor').remove())}
 function render(){renderId++;state=repo.getState();document.body.classList.toggle('entry-mode',route==='join');document.body.classList.toggle('known-guest',!!me()&&route!=='admin');document.body.classList.toggle('admin-mode',route==='admin'&&repo.identity.role==='admin');$('#app').innerHTML=route==='join'?renderJoin():route==='home'?renderHome():route==='program'?renderProgram():route==='memories'?renderMemories():renderAdmin();$$('.nav-link').forEach(a=>{const active=a.hash==='#'+route;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});$('.avatar').textContent=(me()?.name||'Е').slice(0,1);$('#mode-bar').textContent=repo.live?'':'Демонстрационный режим · вымышленные гости · данные только на этом устройстве';if(route==='admin'&&repo.identity.role==='admin')bindAdmin();else bindGuest();hydrate();}
-function navigate(){if(!state)return;const hash=location.hash.slice(1);if(hash.startsWith('invite='))return;route=sharedEntryKey?'join':['home','program','memories','admin'].includes(hash)?hash:'home';if(!repo.live&&route==='admin')repo.demoIdentity('admin',repo.identity.guestId||'anna');if(!repo.live&&route!=='admin'&&repo.identity.role==='admin')repo.demoIdentity('guest',repo.identity.guestId||'anna');window.scrollTo({top:0,behavior:'instant'});render();if(!matchMedia('(prefers-reduced-motion: reduce)').matches)$('#app').animate([{opacity:.35},{opacity:1}],{duration:320,easing:'ease-out'})}
+async function navigate(){if(!state)return;let hash=location.hash.slice(1);if(hash.startsWith('invite='))return;if(hash.startsWith('join=')&&!sharedEntryKey){sharedEntryKey=hash.slice(5);try{const result=await repo.enterEvent(sharedEntryKey);state=repo.getState();if(result.ready){sharedEntryKey=null;history.replaceState(null,'',location.pathname+location.search+'#home');hash='home'}}catch(err){sharedEntryKey=null;toast(err.message||'Не удалось открыть QR. Попробуйте ещё раз.');return}}route=sharedEntryKey?'join':['home','program','memories','admin'].includes(hash)?hash:'home';if(!repo.live&&route==='admin')repo.demoIdentity('admin',repo.identity.guestId||'anna');if(!repo.live&&route!=='admin'&&repo.identity.role==='admin')repo.demoIdentity('guest',repo.identity.guestId||'anna');window.scrollTo({top:0,behavior:'instant'});render();if(!matchMedia('(prefers-reduced-motion: reduce)').matches)$('#app').animate([{opacity:.35},{opacity:1}],{duration:320,easing:'ease-out'})}
 window.addEventListener('hashchange',navigate);
 let lastIntro=0,playingIntro=false;function playIntro(force){if(playingIntro||matchMedia('(prefers-reduced-motion: reduce)').matches)return;playingIntro=true;const old=document.querySelector('.rock-intro');old?.remove();const cover=document.createElement('div');cover.className='rock-intro';cover.setAttribute('role','presentation');cover.innerHTML='<div class="rock-intro-mark">50</div><p>поводов сказать спасибо</p>';document.body.append(cover);setTimeout(()=>{cover.classList.add('leaving');setTimeout(()=>{cover.remove();playingIntro=false},650)},4400)}function checkIntro(){const n=Number(state?.settings?.intro_epoch||0);if(n>lastIntro){lastIntro=n;const key='evening-intro-'+n;if(!sessionStorage.getItem(key)){sessionStorage.setItem(key,'1');playIntro(true)}}}
 let refreshing=false;
