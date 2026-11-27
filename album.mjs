@@ -1,5 +1,5 @@
-import {collageFrames} from './collage.mjs?v=screen-10';
-import {mediaURL} from './repository.mjs?v=screen-10';
+import {collageFrames} from './collage.mjs?v=rock-11';
+import {mediaURL} from './repository.mjs?v=rock-11';
 export function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 export async function image(photo){const url=await mediaURL(photo);return new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=()=>reject(Error('Фото не загрузилось. Обновите альбом и повторите.'));img.src=url})}
 export async function savePhoto(photo){const response=await fetch(await mediaURL(photo));if(!response.ok)throw Error('Фото недоступно');const blob=await response.blob(),file=new File([blob],`evgeny-${photo.id}.webp`,{type:'image/webp'});if(navigator.canShare?.({files:[file]})&&/iPhone|iPad|Android/.test(navigator.userAgent)){try{await navigator.share({files:[file],title:'50 поводов сказать спасибо'});return}catch(err){if(err.name==='AbortError')return}}download(blob,file.name)}
