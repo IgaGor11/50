@@ -3,11 +3,11 @@ import {openAlbumScreen,closeAlbumScreen} from './album-screen.mjs?v=photo-31';
 import {qrCard,printQR} from './qr.mjs?v=photo-31';
 import {organizerGuide} from './guide.mjs?v=photo-31';
 import {collagePages,collageFrames} from './collage.mjs?v=photo-31';
-import {mountRunbook} from './runbook.mjs?v=photo-31';
+import {mountRunbook} from './runbook.mjs?v=shared-auth-1';
 import * as repo from './repository.mjs?v=iphone-upload-1';
 import {albumFor,escapeHTML as h,safeLink} from './domain.mjs?v=photo-31';
 import {hero} from './home-template.mjs?v=photo-31';
-import {savePhoto,exportPDF,download} from './album.mjs?v=album-fit-1';
+import {savePhoto,exportPDF,download} from './album.mjs?v=shared-auth-1';
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 let sharedEntryKey=location.hash.startsWith('#join=')?location.hash.slice(6):null;
 let state,route='home',adminTab='overview',photoKind='event',portraitTarget='',albumIndex=0,albumGuest=null,archive=false,dialogPhotos=[],dialogIndex=0,toastTimer,renderId=0;
@@ -92,5 +92,6 @@ let lastIntro=0,playingIntro=false;async function playIntro(force){if(playingInt
 let refreshing=false;
 async function refresh(){if(!repo.live||repo.identity.role==='anonymous'||refreshing||document.hidden||document.body.classList.contains('album-screen-open')||$('#dialog').open||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(route==='join')return;refreshing=true;try{const old=JSON.stringify(state);state=await repo.reload();if(JSON.stringify(state)!==old){checkIntro();render()}}catch(err){toast(err.message)}finally{refreshing=false}}
 playIntro(false);try{state=await repo.init(location.hash.startsWith('#invite=')||!!sharedEntryKey);if(sharedEntryKey){const result=await repo.enterEvent(sharedEntryKey);if(result.ready){sharedEntryKey=null;history.replaceState(null,'',location.pathname+location.search+'#home')}state=repo.getState()}const hash=location.hash.slice(1);if(hash.startsWith('invite=')){const code=hash.slice(7);await repo.claimInvite(code);repo.rememberSession(true);state=repo.getState();history.replaceState(null,'',location.pathname+location.search+'#home')}navigate();lastIntro=Number(state?.settings?.intro_epoch||0);setInterval(refresh,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()})}catch(err){$('#app').innerHTML=heading('НУЖЕН ЕЩЁ ОДИН ШАГ','Почти <span class="serif">на месте.</span>',h(err.message))+'<p class="section">Если не получается войти, покажите этот экран организатору — он поможет открыть ваше приглашение.</p><section class="section"><a href="#admin" class="button dark" id="recover-admin">Вход организатора</a><button class="button outline" id="retry">Попробовать снова</button></section>';$('#retry').onclick=()=>location.reload();$('#recover-admin').onclick=async e=>{e.preventDefault();await repo.logout();location.hash='admin';location.reload()};}
+
 
 

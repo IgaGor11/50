@@ -1,4 +1,4 @@
-import {live,privateRunbook} from './repository.mjs?v=photo-31';
+import {live,privateRunbook} from './repository.mjs?v=iphone-upload-1';
 import {escapeHTML as h} from './domain.mjs?v=photo-31';
 let generation=0;
 export async function mountRunbook(root){
@@ -12,3 +12,4 @@ export async function mountRunbook(root){
  async function refresh(){if(!active())return;try{const r=await privateRunbook();if(!active())return;const changed=!data||r.clock.version!==data.clock.version;data=r;offset=Date.parse(r.server_time)-Date.now();if(changed)paint()}catch(e){if(active()&&!data)root.innerHTML=`<section class="admin-panel"><p>${h(e.message)}</p><button class="button outline" data-retry>Повторить</button></section>`;root.querySelector('[data-retry]')?.addEventListener('click',refresh)}}
  await refresh();const tick=setInterval(()=>{if(!active())return clearInterval(tick);clock()},1000);const poll=setInterval(()=>{if(!active())return clearInterval(poll);if(!document.hidden&&!busy)refresh()},5000);
 }
+
