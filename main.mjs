@@ -7,7 +7,7 @@ import {mountRunbook} from './runbook.mjs?v=photo-31';
 import * as repo from './repository.mjs?v=photo-31';
 import {albumFor,escapeHTML as h,safeLink} from './domain.mjs?v=photo-31';
 import {hero} from './home-template.mjs?v=photo-31';
-import {savePhoto,exportPDF,download} from './album.mjs?v=photo-31';
+import {savePhoto,exportPDF,download} from './album.mjs?v=album-fit-1';
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 let sharedEntryKey=location.hash.startsWith('#join=')?location.hash.slice(6):null;
 let state,route='home',adminTab='overview',photoKind='event',portraitTarget='',albumIndex=0,albumGuest=null,archive=false,dialogPhotos=[],dialogIndex=0,toastTimer,renderId=0;
