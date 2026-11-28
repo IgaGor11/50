@@ -1,4 +1,4 @@
-import {buildStudioSurroundings} from './studio-environment.mjs?v=winter-boot-29';
+import {buildStudioSurroundings} from './studio-environment.mjs?v=photo-31';
 import * as T from './vendor/three.module.js';
 import {SVGLoader} from './vendor/SVGLoader.js';
 import rows from './monument-text.mjs';
@@ -69,7 +69,7 @@ export function mountStudio(host,{still=null}={}){
  resize();window.addEventListener('resize',resize);host.append(renderer.domElement);host.classList.add('has-webgl');
  renderer.domElement.setAttribute('aria-label','50 способов сказать спасибо — кинематографическая заставка');
  const start=performance.now();let frame=0,disposed=false;
- function render(now){if(disposed)return;const elapsed=still===null?(now-start)/1000:still;const t=Math.min(elapsed/10,1),ease=t*t*(3-2*t);
+ function render(now){if(disposed)return;const elapsed=still===null?(now-start)/1000:still;const t=Math.min(elapsed/6.8,1),ease=t*t*(3-2*t);
   const aspect=camera.aspect,portrait=aspect<1,dist=portrait?Math.max(26,19/aspect):25;
   const angle=T.MathUtils.lerp(-.95,-.25,ease),radius=T.MathUtils.lerp(dist*.64,dist,ease);
   camera.position.set(Math.sin(angle)*radius,T.MathUtils.lerp(13.3,4.8,ease),Math.cos(angle)*radius);

@@ -1,0 +1,6 @@
+
+.guitar-moment{position:relative;margin-top:24px;height:clamp(230px,42vw,490px);overflow:hidden;background:#252824;border-radius:8px;isolation:isolate}
+.guitar-moment:before{content:"50";position:absolute;inset:auto auto -18% 4%;font:900 clamp(180px,39vw,550px)/.8 Impact,Arial,sans-serif;letter-spacing:-.08em;color:#f1a21a;opacity:.9}
+.guitar-moment img{position:absolute;z-index:1;bottom:-31%;right:5%;height:145%;width:auto;max-width:95%;object-fit:contain;filter:drop-shadow(0 15px 18px #0006)}
+.portrait-aside .cutout-place{overflow:hidden;min-height:260px;display:grid;place-items:end center}.guitar-aside-image{display:block;width:min(100%,280px);max-height:340px;object-fit:contain;object-position:bottom;filter:drop-shadow(0 10px 12px #0003)}
+@media(max-width:700px){.guitar-moment{height:290px;margin-top:14px}.guitar-moment:before{bottom:12%;font-size:240px}.guitar-moment img{height:125%;bottom:-25%;right:-4%;max-width:105%}.guitar-aside-image{max-height:280px}}
