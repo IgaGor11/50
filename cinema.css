@@ -51,3 +51,5 @@ body.intro-playing{overflow:hidden;touch-action:none}
 .rock-intro.snow-to-black:after{display:block}
 
 .rock-intro.has-webgl>.snow-finale{display:grid!important}.snow-finale svg{width:180px;height:180px;filter:drop-shadow(0 0 12px #fff) drop-shadow(0 0 40px #b9e7ff);animation:flake-into-camera 1.6s cubic-bezier(.22,.7,.25,1) both}
+
+#boot-curtain{position:fixed;inset:0;z-index:9999;background:#07101a}.winter-fallback{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font:900 min(42vw,250px)/.8 Impact,Arial,sans-serif;color:#e4b76d}.winter-fallback small{font-size:.25em;line-height:2}.rock-intro.leaving{transition:opacity 1.2s ease}.rock-intro.snow-to-black:after{background:#020408;animation:fade-to-black .95s ease both}

@@ -1,4 +1,4 @@
-import {buildStudioSurroundings} from './studio-environment.mjs?v=winter-finale-28';
+import {buildStudioSurroundings} from './studio-environment.mjs?v=winter-boot-29';
 import * as T from './vendor/three.module.js';
 import {SVGLoader} from './vendor/SVGLoader.js';
 import rows from './monument-text.mjs';
@@ -47,11 +47,11 @@ export function mountStudio(host,{still=null}={}){
  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
  float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
  void main(){vec3 n=normalize(v);float h=n.y;vec3 low=vec3(.58,.70,.79),mid=vec3(.20,.32,.48),top=vec3(.025,.055,.14);vec3 c=mix(low,mid,smoothstep(-.04,.25,h));c=mix(c,top,smoothstep(.2,.8,h));vec2 p=n.xz/(abs(h)+.3)*3.+vec2(time*.005,0);float cloud=noise(p*2.)*.55+noise(p*5.)*.28+noise(p*11.)*.17;float band=smoothstep(.48,.72,cloud)*(1.-smoothstep(.15,.65,h))*smoothstep(-.08,.08,h);c=mix(c,vec3(.64,.74,.86),band*.6);gl_FragColor=vec4(c,1.);}`}));scene.add(sky);
- const count=1100,snowPos=new Float32Array(count*3),fall=new Float32Array(count);let seed=23487;
+ const count=2400,snowPos=new Float32Array(count*3),fall=new Float32Array(count);let seed=23487;
  const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
  for(let i=0;i<count;i++){snowPos[i*3]=(rnd()-.5)*90;snowPos[i*3+1]=rnd()*40;snowPos[i*3+2]=(rnd()-.5)*70;fall[i]=.5+rnd();}
  const snowGeo=new T.BufferGeometry();snowGeo.setAttribute('position',new T.BufferAttribute(snowPos,3));
- scene.add(new T.Points(snowGeo,new T.PointsMaterial({color:0xf8fcff,size:.095,transparent:true,opacity:.85,depthWrite:false})));
+ scene.add(new T.Points(snowGeo,new T.PointsMaterial({color:0xf8fcff,size:.13,transparent:true,opacity:.96,depthWrite:false})));
  // Volumetric cones, actual spotlights, and articulated projector heads.
  const lights=[];
  const beamMat=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,uniforms:{strength:{value:.34}},vertexShader:'varying vec2 p;varying vec3 n;varying vec3 eye;void main(){p=uv;n=normalMatrix*normal;vec4 mv=modelViewMatrix*vec4(position,1.);eye=-mv.xyz;gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec2 p;varying vec3 n;varying vec3 eye;uniform float strength;void main(){float edge=pow(abs(dot(normalize(n),normalize(eye))),2.);float a=pow(1.-p.y,1.6)*strength*edge;gl_FragColor=vec4(.72,.83,1.,a);}'});

@@ -16,7 +16,7 @@ export function buildStudioSurroundings(scene){
  for(let i=0;i<16000;i++){const v=220+Math.floor(rand()*34);ctx.fillStyle='rgba('+v+','+v+',255,.28)';ctx.fillRect(rand()*512,rand()*512,1+rand()*2,1);}
  const paving=new T.CanvasTexture(c);paving.wrapS=paving.wrapT=T.RepeatWrapping;paving.repeat.set(22,22);paving.colorSpace=T.SRGBColorSpace;
  const ground=add(new T.PlaneGeometry(180,180),new T.MeshStandardMaterial({map:paving,color:0xe9f2f8,roughness:.9}),0,-.13,0);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;
- for(let i=0;i<35;i++){const a=i*2.4,r=11+rand()*28;const bank=add(new T.SphereGeometry(1,12,8),snow,Math.sin(a)*r,-.3,Math.cos(a)*r);bank.scale.set(1.4+rand()*2.2,.3+rand()*.7,1.2+rand()*2);}
+ for(let i=0;i<58;i++){const a=i*2.4,r=10+rand()*32;const bank=add(new T.SphereGeometry(1,12,8),snow,Math.sin(a)*r,-.3,Math.cos(a)*r);bank.scale.set(1.7+rand()*3.1,.4+rand()*.9,1.5+rand()*2.8);}
  // Wide semicircular terrace steps join the central monument and projector towers.
  for(let i=0;i<3;i++){
   const step=add(new T.CylinderGeometry(11.7-i*.28,11.7-i*.28,.12,80,1,false,-Math.PI/2,Math.PI),snow,0,-.07+i*.065,-1.8);step.scale.z=.62;step.receiveShadow=true;
