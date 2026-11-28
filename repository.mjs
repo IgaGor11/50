@@ -1,4 +1,4 @@
-import {demoState,validatePair,validateGroup,text} from './domain.mjs?v=webgl-24';
+import {demoState,validatePair,validateGroup,text} from './domain.mjs?v=scenery-25';
 const cfg=window.EVENING_CONFIG||{};
 export const live=cfg.mode==='live'&&!new URLSearchParams(location.search).has('demo');
 let token=null,db=null,remember=false;

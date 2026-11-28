@@ -1,3 +1,4 @@
+import {buildStudioSurroundings} from './studio-environment.mjs?v=scenery-25';
 import * as T from './vendor/three.module.js';
 import {SVGLoader} from './vendor/SVGLoader.js';
 import rows from './monument-text.mjs';
@@ -39,21 +40,20 @@ export function mountStudio(host,{still=null}={}){
  const key=new T.DirectionalLight(0xffd795,4.8);key.position.set(-9,13,16);key.castShadow=true;key.shadow.mapSize.set(1024,1024);Object.assign(key.shadow.camera,{left:-16,right:16,top:18,bottom:-10,near:.5,far:60});key.shadow.bias=-.001;key.shadow.normalBias=.04;scene.add(key);
  const rim=new T.DirectionalLight(0xffb261,2.8);rim.position.set(8,7,-8);scene.add(rim);
  const fill=new T.DirectionalLight(0xbedaff,1.1);fill.position.set(5,9,12);scene.add(fill);
- box(150,.2,150,0,-.16,0,dark,scene);
+ buildStudioSurroundings(scene);
  // Procedural sunset and drifting clouds surround the actual 3D camera.
  const sky=new T.Mesh(new T.SphereGeometry(130,32,16),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{time:{value:0}},vertexShader:'varying vec3 v;void main(){v=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`varying vec3 v;uniform float time;
  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
  float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
  void main(){vec3 n=normalize(v);float h=n.y;vec3 low=vec3(.95,.43,.16),mid=vec3(.30,.17,.40),top=vec3(.025,.04,.15);vec3 c=mix(low,mid,smoothstep(-.04,.25,h));c=mix(c,top,smoothstep(.2,.8,h));vec2 p=n.xz/(abs(h)+.3)*3.+vec2(time*.005,0);float cloud=noise(p*2.)*.55+noise(p*5.)*.28+noise(p*11.)*.17;float band=smoothstep(.48,.72,cloud)*(1.-smoothstep(.15,.65,h))*smoothstep(-.08,.08,h);c=mix(c,vec3(.66,.35,.39),band*.6);gl_FragColor=vec4(c,1.);}`}));scene.add(sky);
- // Distant hills, buildings and palm silhouettes frame the studio lot.
- for(let i=0;i<32;i++){const angle=i/32*Math.PI*2;const hill=new T.Mesh(new T.SphereGeometry(7+(i%4),8,5),dark);hill.position.set(Math.sin(angle)*62,-3+(i%3),Math.cos(angle)*62);hill.scale.y=.3;scene.add(hill);}
- for(let i=0;i<45;i++){const x=Math.sin(i*12.7)*48,z=-15-Math.abs(Math.cos(i*8.1))*30;box(1.1,1+(i%5)*.4,1.3,x,.5,z,stone,scene);}
- for(const x of [-15,-11,12,17]){const p=new T.Group();p.position.set(x,0,-7-Math.abs(x%3));scene.add(p);const trunk=new T.Mesh(new T.CylinderGeometry(.12,.25,4.5,6),dark);trunk.position.y=2.25;p.add(trunk);for(let i=0;i<7;i++){const leaf=new T.Mesh(new T.ConeGeometry(.36,3.3,4),dark);leaf.position.set(Math.sin(i)*.8,4.25,Math.cos(i)*.8);leaf.rotation.set(Math.cos(i)*1.25,0,Math.sin(i)*1.25);p.add(leaf);}}
  // Volumetric cones, actual spotlights, and articulated projector heads.
  const lights=[];
  const beamMat=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,uniforms:{strength:{value:.34}},vertexShader:'varying vec2 p;varying vec3 n;varying vec3 eye;void main(){p=uv;n=normalMatrix*normal;vec4 mv=modelViewMatrix*vec4(position,1.);eye=-mv.xyz;gl_Position=projectionMatrix*mv;}',fragmentShader:'varying vec2 p;varying vec3 n;varying vec3 eye;uniform float strength;void main(){float edge=pow(abs(dot(normalize(n),normalize(eye))),2.);float a=pow(1.-p.y,1.6)*strength*edge;gl_FragColor=vec4(.72,.83,1.,a);}'});
  [[-8,5,-1.6],[8,5,-1.6],[-10,.4,7],[10,.4,7],[-6,1,-8],[6,1,-8]].forEach((xyz,i)=>{
+  const stand=new T.Mesh(new T.CylinderGeometry(.48,.62,.2,24),stone);stand.position.set(xyz[0],xyz[1]-.35,xyz[2]);scene.add(stand);
   const pivot=new T.Group();pivot.position.set(...xyz);scene.add(pivot);
+  const ring=new T.Mesh(new T.TorusGeometry(.34,.045,8,32),trim);ring.rotation.x=Math.PI/2;ring.position.y=.28;pivot.add(ring);
+  for(const side of [-1,1]){const arm=new T.Mesh(new T.BoxGeometry(.07,.5,.12),edge);arm.position.set(side*.4,-.08,0);pivot.add(arm);}
   const shaft=new T.Mesh(new T.CylinderGeometry(2.8,.07,38,24,1,true),beamMat);shaft.position.y=19;pivot.add(shaft);
   const lamp=new T.Mesh(new T.CylinderGeometry(.38,.3,.55,16),edge);pivot.add(lamp);
   const disk=new T.Mesh(new T.CircleGeometry(.29,24),new T.MeshBasicMaterial({color:0xfff4d2}));disk.rotation.x=-Math.PI/2;disk.position.y=.29;pivot.add(disk);
@@ -72,5 +72,5 @@ export function mountStudio(host,{still=null}={}){
   sky.material.uniforms.time.value=elapsed;renderer.render(scene,camera);if(still===null)frame=requestAnimationFrame(render);
  }
  render(start);
- return ()=>{if(disposed)return;disposed=true;cancelAnimationFrame(frame);window.removeEventListener('resize',resize);const geometries=new Set(),materials=new Set();scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m));});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());renderer.dispose();renderer.domElement.remove();host.classList.remove('has-webgl');};
+ return ()=>{if(disposed)return;disposed=true;cancelAnimationFrame(frame);window.removeEventListener('resize',resize);const geometries=new Set(),materials=new Set();scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m));});geometries.forEach(g=>g.dispose());materials.forEach(m=>{for(const value of Object.values(m))if(value?.isTexture)value.dispose();m.dispose()});renderer.dispose();renderer.domElement.remove();host.classList.remove('has-webgl');};
 }
