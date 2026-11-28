@@ -1,4 +1,4 @@
-import {buildStudioSurroundings} from './studio-environment.mjs?v=winter-27';
+import {buildStudioSurroundings} from './studio-environment.mjs?v=winter-finale-28';
 import * as T from './vendor/three.module.js';
 import {SVGLoader} from './vendor/SVGLoader.js';
 import rows from './monument-text.mjs';

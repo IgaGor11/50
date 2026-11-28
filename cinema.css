@@ -49,3 +49,5 @@
 body.intro-playing{overflow:hidden;touch-action:none}
 .snow-finale{position:absolute;inset:0;z-index:11;display:grid;place-items:center;pointer-events:none}.snow-finale span{display:block;color:#f5fbff;font:200px/1 Georgia,serif;text-shadow:0 0 18px #fff,0 0 55px #bfe5ff;animation:flake-into-camera 1.6s cubic-bezier(.22,.7,.25,1) both}.rock-intro.snow-to-black:after{content:"";position:absolute;inset:0;background:#05080c;z-index:12;animation:fade-to-black .7s ease both}@keyframes flake-into-camera{0%{transform:translate(30vw,-25vh) rotate(-100deg) scale(.03);opacity:0}15%{opacity:1}100%{transform:translate(0,0) rotate(30deg) scale(9);opacity:1}}@keyframes fade-to-black{from{opacity:0}to{opacity:1}}
 .rock-intro.snow-to-black:after{display:block}
+
+.rock-intro.has-webgl>.snow-finale{display:grid!important}.snow-finale svg{width:180px;height:180px;filter:drop-shadow(0 0 12px #fff) drop-shadow(0 0 40px #b9e7ff);animation:flake-into-camera 1.6s cubic-bezier(.22,.7,.25,1) both}
