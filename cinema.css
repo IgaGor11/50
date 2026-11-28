@@ -43,3 +43,7 @@
 .studio-tower{bottom:0;transform:translateZ(0);box-shadow:none;width:15%;border-top:5px solid #edc486}
 .tower-left{left:-19%}.tower-right{right:-19%}
 @media(max-height:480px) and (orientation:landscape){.word-1{margin-top:0}}
+
+.rock-intro.has-webgl>div{display:none}.rock-intro.has-webgl>canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
+
+body.intro-playing{overflow:hidden;touch-action:none}
