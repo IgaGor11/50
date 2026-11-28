@@ -1,77 +1,11 @@
-const tracks = [
-  'Ну извини', 'Девочка моя', 'Музыка волн', 'Как на войне',
-  'Инстаграм', 'Я так соскучился', 'Ходит дурачок', 'Калина',
-  'Wicked Game', 'Сансара', 'Ангел', 'Спасибо за день',
-  'Всё, что останется', 'Видели ночь', 'Постой, паровоз', 'Чижико'
-];
-
-const player = new Audio();
-player.preload = 'none';
-let current = 0;
-let playing = false;
-const file = index => `assets/songs/${String(index + 1).padStart(2, '0')}.mp3`;
-const stamp = seconds => Number.isFinite(seconds) ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` : '0:00';
-const bars = Array.from({length: 27}, (_, index) => `<i style="--h:${18 + (index * 47 + index * index * 11) % 72}%"></i>`).join('');
-
-export function renderSongs() {
-  return `<section class="songs-page section">
-    <header class="songs-heading"><p class="eyebrow">28 НОЯБРЯ · ЗВУЧИТ ЗДЕСЬ</p><h1>Песни <em>вечера.</em></h1><p>Включайте любимую. Этот вечер можно слушать снова.</p></header>
-    <div class="songs-layout"><div class="songs-player" aria-label="Плеер песен">
-      <div class="record-art"><div class="record-disc"><span>50<small>ПОВОДОВ<br>СКАЗАТЬ СПАСИБО</small></span></div></div>
-      <div class="song-current"><span class="song-overline">СЕЙЧАС ЗВУЧИТ <b id="song-number">01 / 16</b></span><h2 id="song-title">${tracks[0]}</h2><div class="sound-bars" aria-hidden="true">${bars}</div></div>
-      <div class="song-transport"><button type="button" id="song-prev" aria-label="Предыдущая песня">‹</button><button type="button" id="song-play" class="song-play" aria-label="Воспроизвести">▶</button><button type="button" id="song-next" aria-label="Следующая песня">›</button></div>
-      <div class="song-timeline"><span id="song-elapsed">0:00</span><input id="song-seek" type="range" min="0" max="1000" value="0" aria-label="Перемотка песни"><span id="song-duration">0:00</span></div>
-    </div><div class="songs-list-wrap"><div class="songs-list-head"><span>ПЛЕЙЛИСТ</span><span>16 ПЕСЕН</span></div><ol class="songs-list">${tracks.map((title, index) => `<li><button type="button" class="song-row${index === current ? ' selected' : ''}" data-song="${index}" aria-label="Воспроизвести: ${title}"><span class="song-index">${String(index + 1).padStart(2, '0')}</span><strong>${title}</strong><span class="song-row-icon" aria-hidden="true">↗</span></button></li>`).join('')}</ol></div></div>
-  </section>`;
-}
-
-export function mountSongs(root) {
-  const get = selector => root.querySelector(selector);
-  const refresh = () => {
-    if (!root.isConnected) return;
-    get('#song-title').textContent = tracks[current];
-    get('#song-number').textContent = `${String(current + 1).padStart(2, '0')} / ${tracks.length}`;
-    get('#song-play').textContent = playing ? 'Ⅱ' : '▶';
-    get('#song-play').setAttribute('aria-label', playing ? 'Пауза' : 'Воспроизвести');
-    root.querySelectorAll('[data-song]').forEach(button => {
-      const selected = Number(button.dataset.song) === current;
-      button.classList.toggle('selected', selected);
-      button.setAttribute('aria-current', selected ? 'true' : 'false');
-    });
-    get('#song-elapsed').textContent = stamp(player.currentTime);
-    get('#song-duration').textContent = stamp(player.duration);
-    get('#song-seek').value = player.duration ? String(Math.round(player.currentTime / player.duration * 1000)) : '0';
-    root.classList.toggle('is-playing', playing);
-  };
-  const select = async (index, autoplay = true) => {
-    current = (index + tracks.length) % tracks.length;
-    player.src = file(current);
-    player.load();
-    playing = false;
-    refresh();
-    if (autoplay) {
-      try { await player.play(); playing = true; }
-      catch { playing = false; }
-      refresh();
-    }
-  };
-  get('#song-play').onclick = async () => {
-    if (!player.src) await select(current, false);
-    if (player.paused) {
-      try { await player.play(); playing = true; }
-      catch { playing = false; }
-    } else { player.pause(); playing = false; }
-    refresh();
-  };
-  get('#song-prev').onclick = () => select(current - 1);
-  get('#song-next').onclick = () => select(current + 1);
-  root.querySelectorAll('[data-song]').forEach(button => button.onclick = () => select(Number(button.dataset.song)));
-  get('#song-seek').oninput = event => { if (player.duration) player.currentTime = Number(event.target.value) / 1000 * player.duration; refresh(); };
-  player.ontimeupdate = refresh;
-  player.onloadedmetadata = refresh;
-  player.onended = () => select(current + 1);
-  player.onerror = () => { playing = false; refresh(); };
-  refresh();
-}
-
-export function pauseSongs() { player.pause(); playing = false; }
+const tracks=['Ну извини','Девочка моя','Музыка волн','Как на войне','Инстаграм','Я так соскучился','Ходит дурачок','Калина','Wicked Game','Сансара','Ангел','Спасибо за день','Всё, что останется','Видели ночь','Постой, паровоз','Чижико'];
+const audio=new Audio();audio.preload='none';let current=0,playing=false;
+const file=i=>'assets/songs/'+String(i+1).padStart(2,'0')+'.mp3';
+const stamp=s=>Number.isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
+function cassette(i,small=false){return `<span class="cassette ${small?'cassette-small':''}" style="--tape-color:var(--tape-${i%6})"><span class="cassette-top"><span>ЖЕНЯ · 90</span><span>СТОРОНА А</span></span><span class="cassette-label"><span class="cassette-no">${String(i+1).padStart(2,'0')}</span><span class="cassette-name">${tracks[i]}</span></span><span class="cassette-window"><span class="cassette-reel"><i></i></span><span class="cassette-tape"></span><span class="cassette-reel"><i></i></span></span><span class="cassette-bottom"><i></i><span>60 • Fe₂O₃</span><i></i></span></span>`}
+export function renderSongs(){return `<section class="songs-page section"><header class="songs-heading"><span class="songs-stamp">МАГНИТОФОН · 1990-е</span><h1>Песни вечера</h1><p>Выберите кассету. Остальное — просто слушать.</p></header><div class="songs-layout"><div class="songs-machine-wrap"><div class="songs-player" aria-label="Кассетный плеер"><div class="machine-handle" aria-hidden="true"></div><div class="machine-top"><span class="machine-brand">ВЕГА<span>50</span></span><span class="machine-model">СТЕРЕО МАГНИТОФОН<br>28 НОЯБРЯ 2026</span></div><div class="machine-face"><div class="speaker speaker-left" aria-hidden="true"><i></i></div><div class="machine-center"><div class="machine-display"><span class="display-led"></span><span id="song-number">01 / 16</span><span class="display-bars" aria-hidden="true">▮▮▮▮▮▮▮</span></div><div class="cassette-door" id="cassette-door"><span class="door-glass">${cassette(current)}</span><span class="door-caption">АВТОСТОП · ШУМОПОДАВЛЕНИЕ</span></div></div><div class="speaker speaker-right" aria-hidden="true"><i></i></div></div><div class="machine-control-panel"><div class="song-current"><span>СЕЙЧАС ИГРАЕТ</span><h2 id="song-title">${tracks[current]}</h2></div><div class="song-transport"><button type="button" id="song-prev" aria-label="Предыдущая песня"><span>◀◀</span><small>НАЗАД</small></button><button type="button" id="song-play" class="song-play" aria-label="Воспроизвести"><span>▶</span><small>ПУСК</small></button><button type="button" id="song-next" aria-label="Следующая песня"><span>▶▶</span><small>ВПЕРЁД</small></button></div><div class="song-timeline"><span id="song-elapsed">0:00</span><input id="song-seek" type="range" min="0" max="1000" value="0" aria-label="Перемотка песни"><span id="song-duration">0:00</span></div></div><div class="machine-feet" aria-hidden="true"><i></i><i></i></div></div></div><div class="songs-shelf-wrap"><div class="shelf-heading"><span>Кассеты Жени</span><span>16 ШТУК</span></div><ol class="cassette-shelf">${tracks.map((title,i)=>`<li><button type="button" class="shelf-tape${i===current?' selected':''}" data-song="${i}" aria-label="Вставить кассету: ${title}">${cassette(i,true)}</button></li>`).join('')}</ol></div></div></section>`}
+export function mountSongs(root){const get=s=>root.querySelector(s);const refresh=()=>{if(!root.isConnected)return;get('#song-title').textContent=tracks[current];get('#song-number').textContent=String(current+1).padStart(2,'0')+' / '+tracks.length;get('#song-play span').textContent=playing?'Ⅱ':'▶';get('#song-play small').textContent=playing?'ПАУЗА':'ПУСК';get('#song-play').setAttribute('aria-label',playing?'Пауза':'Воспроизвести');root.querySelectorAll('[data-song]').forEach(b=>{let yes=Number(b.dataset.song)===current;b.classList.toggle('selected',yes);if(yes)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});get('#song-elapsed').textContent=stamp(audio.currentTime);get('#song-duration').textContent=stamp(audio.duration);get('#song-seek').value=audio.duration?String(Math.round(audio.currentTime/audio.duration*1000)):'0';root.classList.toggle('is-playing',playing)};
+const insert=(i,source)=>{const door=get('#cassette-door');door.classList.remove('tape-inserting');door.querySelector('.door-glass').innerHTML=cassette(i);void door.offsetWidth;door.classList.add('tape-inserting');if(source&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const from=source.getBoundingClientRect(),to=door.getBoundingClientRect();if(from.bottom>0&&from.top<innerHeight&&to.bottom>0&&to.top<innerHeight){const ghost=source.querySelector('.cassette').cloneNode(true);ghost.classList.add('tape-ghost');Object.assign(ghost.style,{position:'fixed',left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px',zIndex:'1000',pointerEvents:'none'});document.body.append(ghost);ghost.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${to.left-from.left}px,${to.top-from.top}px) scale(${Math.min(to.width/from.width,1.2)})`,opacity:.4}],{duration:470,easing:'cubic-bezier(.2,.7,.2,1)'}).finished.finally(()=>ghost.remove())}}};
+const select=async(i,source,autoplay=true)=>{current=(i+tracks.length)%tracks.length;insert(current,source);audio.src=file(current);audio.load();playing=false;refresh();if(source&&matchMedia('(max-width: 850px)').matches)get('.songs-player').scrollIntoView({behavior:'smooth',block:'start'});if(autoplay){try{await audio.play();playing=true}catch{playing=false}refresh()}};
+get('#song-play').onclick=async()=>{if(!audio.src)await select(current,null,false);if(audio.paused){try{await audio.play();playing=true}catch{playing=false}}else{audio.pause();playing=false}refresh()};get('#song-prev').onclick=()=>select(current-1);get('#song-next').onclick=()=>select(current+1);root.querySelectorAll('[data-song]').forEach(b=>b.onclick=()=>select(Number(b.dataset.song),b));get('#song-seek').oninput=e=>{if(audio.duration)audio.currentTime=Number(e.target.value)/1000*audio.duration;refresh()};audio.ontimeupdate=refresh;audio.onloadedmetadata=refresh;audio.onended=()=>select(current+1);audio.onerror=()=>{playing=false;refresh()};refresh()}
+export function pauseSongs(){audio.pause();playing=false}

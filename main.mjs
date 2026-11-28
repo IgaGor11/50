@@ -1,4 +1,4 @@
-import {renderSongs,mountSongs,pauseSongs} from './songs.mjs?v=songs-1';
+import {renderSongs,mountSongs,pauseSongs} from './songs.mjs?v=songs-2';
 import {openAlbumScreen,closeAlbumScreen} from './album-screen.mjs?v=photo-31';
 import {qrCard,printQR} from './qr.mjs?v=photo-31';
 import {organizerGuide} from './guide.mjs?v=photo-31';
